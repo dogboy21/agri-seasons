@@ -1,0 +1,78 @@
+buildscript {
+    repositories {
+        jcenter()
+        maven { url = "https://files.minecraftforge.net/maven" }
+    }
+    dependencies {
+        classpath 'net.minecraftforge.gradle:ForgeGradle:2.3-SNAPSHOT'
+    }
+}
+apply plugin: 'net.minecraftforge.gradle.forge'
+
+version = "${mod_version}"
+group = "xyz.dogboy.agriseasons"
+archivesBaseName = "agriseasons-${minecraft_version}"
+
+sourceCompatibility = targetCompatibility = '1.8'
+compileJava {
+    sourceCompatibility = targetCompatibility = '1.8'
+}
+
+minecraft {
+    version = "${minecraft_version}-${forge_version}"
+    runDir = "run"
+    mappings = "${mcp_version}"
+
+    replace '@VERSION@', project.version
+    replace '@FINGERPRINT@', project.findProperty('signSHA1')
+    replaceIn "Reference.java"
+}
+
+repositories {
+    maven {
+        url 'https://minecraft.curseforge.com/api/maven'
+    }
+}
+
+dependencies {
+    deobfCompile 'infinitylib:infinitylib:1.12.0'
+    deobfCompile 'agricraft:AgriCraft-2.12.0:1.12.0:a6'
+    deobfCompile 'serene-seasons:SereneSeasons-1.12.2:1.2.15:universal'
+}
+
+processResources {
+    inputs.property "version", project.version
+    inputs.property "mcversion", project.minecraft.version
+
+    from(sourceSets.main.resources.srcDirs) {
+        include 'mcmod.info'
+        expand 'version':project.version, 'mcversion':project.minecraft.version
+    }
+
+    from(sourceSets.main.resources.srcDirs) {
+        exclude 'mcmod.info'
+    }
+}
+
+jar {
+    manifest {
+        attributes (
+                'FMLCorePlugin': 'xyz.dogboy.agriseasons.AgriSeasonsCoreMod'
+        )
+    }
+}
+
+task signJar(type: SignJar, dependsOn: reobfJar) { // https://gist.github.com/matthewprenger/9b2da059b89433a01c1c
+    onlyIf { // Skip the task if our secret data isn't available
+        project.hasProperty('keyStore')
+    }
+
+    keyStore = project.keyStore // This needs to be a path to the keystore file
+    alias = project.keyStoreAlias
+    storePass = project.keyStorePass
+    keyPass = project.keyStoreKeyPass
+    inputFile = jar.archivePath
+    outputFile = jar.archivePath
+}
+
+build.dependsOn signJar
