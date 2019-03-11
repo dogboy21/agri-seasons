@@ -1,6 +1,8 @@
 package xyz.dogboy.agriseasons;
 
+import com.google.common.eventbus.EventBus;
 import net.minecraftforge.fml.common.DummyModContainer;
+import net.minecraftforge.fml.common.LoadController;
 import net.minecraftforge.fml.common.ModMetadata;
 
 import javax.annotation.Nullable;
@@ -22,6 +24,11 @@ public class AgriSeasons extends DummyModContainer {
     public Certificate getSigningCertificate() {
         Certificate[] certificates = this.getClass().getProtectionDomain().getCodeSource().getCertificates();
         return certificates != null ? certificates[0] : null;
+    }
+
+    @Override
+    public boolean registerBus(EventBus bus, LoadController controller) {
+        return true;
     }
 
 }
